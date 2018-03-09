@@ -1,3 +1,14 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
 # Compiled class file
 *.class
 
