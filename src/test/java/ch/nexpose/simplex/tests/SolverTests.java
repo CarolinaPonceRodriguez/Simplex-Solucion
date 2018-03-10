@@ -44,6 +44,7 @@ public class SolverTests {
     public void init()
     {
         solver = new SimplexSolver();
+        solver.setMostrarValores(true);
     }
 
     @Test

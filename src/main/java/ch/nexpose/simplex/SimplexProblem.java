@@ -18,7 +18,7 @@ public class SimplexProblem {
     private List<SimplexConstraint> listaDeRestricciones;
 	private int cantidadDeRestricciones;
 	private int cantidadDeVariables;
-
+	
     public SimplexProblem(){
     	this.listaDeCoeficientes = new ArrayList<>();
     	this.listaDeRestricciones = new ArrayList<>();
@@ -98,7 +98,15 @@ public class SimplexProblem {
         this.optimisationType = optimisationType;
     }
 
-    public SimplexCoefficient[] getCoefficients() {
+    public List<SimplexCoefficient> getListaDeCoeficientes() {
+		return listaDeCoeficientes;
+	}
+
+	public List<SimplexConstraint> getListaDeRestricciones() {
+		return listaDeRestricciones;
+	}
+
+	public SimplexCoefficient[] getCoefficients() {
     	SimplexCoefficient[] coeficientes = new SimplexCoefficient[this.listaDeCoeficientes.size()];
     	return this.listaDeCoeficientes.toArray(coeficientes);
     }

@@ -18,19 +18,25 @@ public class SimplexSolver {
 
     //equation identifier
     private String[] head;
-    private List<String> cabecera;
-    private List<String> lados;
     private String[] side;
     private SimplexProblem unProblema;
+    private boolean mostrarValores;
 
-    
-    
     public SimplexSolver() {
 		super();
-		this.cabecera = new ArrayList<>();
-		this.lados = new ArrayList<>();
+		this.mostrarValores = false;
 	}
-
+    
+    public void setMostrarValores(boolean unValor) {
+    	this.mostrarValores = unValor;
+    }
+    
+    private void mostrar(String unValor) {
+    	if(mostrarValores) {
+    		System.out.println(unValor);
+    	}
+    }
+    
 	private void convertirMenoresIguales() {
     	for(SimplexConstraint c : this.unProblema.getConstraints())
         {
@@ -48,76 +54,89 @@ public class SimplexSolver {
             this.unProblema.convertInequation();
     }
     
+    private void inicializarHead() {
+    	head = new String[this.unProblema.getCoefficients().length - 1];
+        for (int i = 0; i < head.length; i++)
+            head[i] = "x" + (i + 1);
+    }
+    
+    private void inicializarSides() {
+    	side = new String[this.unProblema.getConstraints().length];
+        for (int i = 0; i < side.length; i++)
+            side[i] = "y" + (i + 1);
+    }
+    
+    private void inicializarSchema() {
+    	 schema = new double[this.unProblema.getConstraints().length+1][this.unProblema.getCoefficients().length];
+    }
+    
+    private void inicializarIndiceObjetivo() {
+    	aimIndex = schema.length-1;
+    }
+    
+    private void inicializarCIndex() {
+    	cIndex = schema[aimIndex].length-1;
+    }
+    
+    private void generarEsquemaInicial() {
+    	for(int y = 0; y < aimIndex; y++)
+            schema[y] = this.unProblema.getConstraints()[y].getSlackVariables();
+
+        schema[aimIndex] = this.unProblema.getSlackVariables();
+    }
+    
+    private long cantidadMaximaDePasos() {
+    	return getMaxIterations(this.unProblema.getCoefficients().length - 2, this.unProblema.getConstraints().length);
+    }
+    
+    private void verificarAlgoritmoDualSegun(int cantidadNegativa) {
+    	if(cantidadNegativa > 0)
+        {
+            dualAlgorithm(cantidadNegativa);
+        }
+    }
+    
+    private void run(long cantidadMaximaDePasos) {
+    	int stepCount = 0;
+        while (nextStep(stepCount++)){
+            if(stepCount > cantidadMaximaDePasos){
+                //cancle because of zyclic problems
+            	mostrar("Cylcic Problem! Not solvable!");
+                break;
+            }
+        }
+    }
+    
+    private void cambiarSignoSiEsNecesario(int cantidadNegativa) {
+    	if(cantidadNegativa > 0){
+            schema[aimIndex][cIndex] *= -1;
+        }
+    }
+    
     public Double solve(SimplexProblem problem){
         setProblema(problem);
         problem.convertEqualsConstraints();
         convertirMenoresIguales();
         problemaAMax();
-
-        //create head & side variables
-        head = new String[problem.getCoefficients().length - 1];
-
-        for (int i = 0; i < head.length; i++)
-            head[i] = "x" + (i + 1);
-
-        side = new String[problem.getConstraints().length];
-
-        for (int i = 0; i < side.length; i++)
-            side[i] = "y" + (i + 1);
-
-        //create schema
-        schema = new double[problem.getConstraints().length+1][problem.getCoefficients().length];
-
-        aimIndex = schema.length-1;
-        cIndex = schema[aimIndex].length-1;
-
-        //fill initial schema
-        for(int y = 0; y < aimIndex; y++)
-            schema[y] = problem.getConstraints()[y].getSlackVariables();
-
-        schema[aimIndex] = problem.getSlackVariables();
-
-        //calcualte cancle steps size for zyclic problems
-        long maxSteps = getMaxIterations(problem.getCoefficients().length - 2, problem.getConstraints().length);
-
+        inicializarHead();
+        inicializarSides();
+        inicializarSchema();
+        inicializarIndiceObjetivo();
+        inicializarCIndex();
+        generarEsquemaInicial();
+        long maxSteps = cantidadMaximaDePasos();
         printSchema("Initial Schema");
-
-        //check for dual algorithm
         int negCCount = getNegativeCCount();
-        if(negCCount > 0)
-        {
-            dualAlgorithm(negCCount);
-        }
-
-        //run algorithm
-        int stepCount = 0;
-        while (nextStep(stepCount++)){
-            if(stepCount > maxSteps)
-            {
-                //cancle because of zyclic problems
-                System.out.println("Cylcic Problem! Not solvable!");
-                return null;
-            }
-        }
-
-        System.out.println();
-
+        verificarAlgoritmoDualSegun(negCCount);
+        run(maxSteps);
+        cambiarSignoSiEsNecesario(negCCount);
         //solve head functions
         for (int i = 0; i < head.length; i++) {
             String xName = "x" + (i + 1);
             int index = getIndexOf(xName);
-            System.out.println(xName + "\t= " + schema[index][cIndex]);
+            mostrar(xName + "\t= " + schema[index][cIndex]);
         }
-
-        if(negCCount > 0)
-        {
-            schema[aimIndex][cIndex] *= -1;
-        }
-
-        //show result
-        System.out.println("Result: " + schema[aimIndex][cIndex]);
-        System.out.println();
-
+        mostrar("Resultado: " + schema[aimIndex][cIndex]);
         return schema[aimIndex][cIndex];
     }
 
@@ -148,20 +167,14 @@ public class SimplexSolver {
     {
         //get position of not null aim function component
         MatrixPos aimFunctionPos = getPositiveAimFunctionComponent();
-
         //finished if aimFunctionPos is Null
         if(aimFunctionPos == null)
             return false;
-
-        System.out.println("Aim Column (" + aimFunctionPos.x + "): " + schema[aimIndex][aimFunctionPos.x]);
-
+        mostrar("Columna objetivo (" + aimFunctionPos.x + "): " + schema[aimIndex][aimFunctionPos.x]);
         //get position of smallest quotient (ci / aiq)
         MatrixPos pivotIndex = getPositionOfSmallestQuotient(aimFunctionPos.x);
-
-        System.out.println("Pivot (" + pivotIndex.y + "|" + pivotIndex.x + "): " + schema[pivotIndex.y][pivotIndex.x]);
-
+        mostrar("Pivote (" + pivotIndex.y + "|" + pivotIndex.x + "): " + schema[pivotIndex.y][pivotIndex.x]);
         swap(pivotIndex);
-
         printSchema("Step " + stepCount);
         return true;
     }
@@ -221,7 +234,7 @@ public class SimplexSolver {
         }
 
         //nothing found
-        System.out.println("no new element found to switch!");
+        mostrar("no new element found to switch!");
         return null;
     }
 
@@ -246,41 +259,43 @@ public class SimplexSolver {
 
     private void printSchema(String message)
     {
-        System.out.println(message + ":");
+    	if(this.mostrarValores) {
+    		 System.out.println(message + ":");
 
-        //print header
-        System.out.print("\t");
-        for (int i = 0; i < head.length; i++)
-            System.out.format("%12s", head[i]);
-        System.out.println();
+    	        //print header
+    	        System.out.print("\t");
+    	        for (int i = 0; i < head.length; i++)
+    	            System.out.format("%12s", head[i]);
+    	        System.out.println();
 
-        //print line
-        System.out.print("\t");
-        for (int i = 0; i < head.length; i++)
-            System.out.format("%12s", "--");
-        System.out.println();
+    	        //print line
+    	        System.out.print("\t");
+    	        for (int i = 0; i < head.length; i++)
+    	            System.out.format("%12s", "--");
+    	        System.out.println();
 
-        //print data
-        for(int y = 0; y < schema.length; y++)
-        {
-            if(y == schema.length-1)
-                System.out.print("z  | ");
-            else
-                System.out.print(side[y] + " | ");
+    	        //print data
+    	        for(int y = 0; y < schema.length; y++)
+    	        {
+    	            if(y == schema.length-1)
+    	                System.out.print("z  | ");
+    	            else
+    	                System.out.print(side[y] + " | ");
 
-            for(int x = 0; x < schema[y].length; x++)
-            {
-                System.out.format("%12.2f", schema[y][x]);
-            }
-            System.out.println();
-        }
+    	            for(int x = 0; x < schema[y].length; x++)
+    	            {
+    	                System.out.format("%12.2f", schema[y][x]);
+    	            }
+    	            System.out.println();
+    	        }
 
-        System.out.println();
+    	        System.out.println();
+    	}
     }
 
     private void dualAlgorithm(int negCCount)
     {
-        System.out.println("Problem can only be solved with dual algorithm!\n");
+    	mostrar("Problem can only be solved with dual algorithm!\n");
 
         //save z and add h and cIndex
         double[] saveZ = schema[aimIndex].clone();
@@ -329,8 +344,7 @@ public class SimplexSolver {
         //todo: do the simplex
         int stepCount = 0;
         while (nextStep(stepCount++)){}
-
-        System.out.println("Dual algorithm stopped!");
+        mostrar("Dual algorithm stopped!");
 
         //todo: cleanup
         //remove columns
