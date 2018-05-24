@@ -27,9 +27,8 @@ public class SolverTests {
 
     public String readAllText(String filename)
     {
-        String p = "D:/Ezequiel/Documents/GitHub/SimplexSolver-master/LP_problems/"+filename+".csv";
+        String p = "C:/your/repository/route/SimplexSolver-master/LP_problems/"+filename+".csv";
         Path path = Paths.get(p);
-        //Path path = FileSystems.getDefault().getPath(p + filename + ".csv");
 
         String contents = "Not Data";
         try {
