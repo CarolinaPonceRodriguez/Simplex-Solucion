@@ -27,7 +27,7 @@ public class SolverTests {
 
     public String readAllText(String filename)
     {
-        String p = "C:/your/repository/route/SimplexSolver-master/LP_problems/"+filename+".csv";
+    	 String p = "C:/your/repository/route/Simplex-Solucion/LP_problems/"+filename+".csv";
         Path path = Paths.get(p);
 
         String contents = "Not Data";
@@ -58,15 +58,6 @@ public class SolverTests {
     }
 
     @Test
-    public void infiniteSolutionsTest() {
-        SimplexProblem p = new SimplexProblem();
-        p.parse(readAllText("InfiniteSolutions"));
-
-        double result = solver.solve(p);
-        assertTrue(Double.isInfinite(result));
-    }
-
-    @Test
     public void landWirtschaftTest() {
         SimplexProblem p = new SimplexProblem();
         p.parse(readAllText("Landwirtschaft"));
@@ -78,67 +69,12 @@ public class SolverTests {
     }
 
     @Test
-    public void negSchlupfTest() {
-        SimplexProblem p = new SimplexProblem();
-        p.parse(readAllText("NegSchlupf"));
-
-        double result = solver.solve(p);
-        double expected = 86;
-
-        assertEquals(expected, result, EPSILON);
-    }
-
-    @Test
-    public void nichtNegativiteatTest1() {
-        SimplexProblem p = new SimplexProblem();
-        p.parse(readAllText("NichtNegativitaet_1"));
-
-        Double result = solver.solve(p);
-        Double expected = Double.NaN;
-
-        assertEquals(expected, result);
-    }
-
-    @Test
-    public void nichtNegativiteatTest2() {
-        SimplexProblem p = new SimplexProblem();
-        p.parse(readAllText("NichtNegativitaet_2"));
-
-        Double result = solver.solve(p);
-        double expected = 10;
-
-        assertEquals(expected, result, EPSILON);
-    }
-
-    @Test
     public void zweiSeafteTest() {
         SimplexProblem p = new SimplexProblem();
         p.parse(readAllText("ZweiSaefte"));
 
         double result = solver.solve(p);
         double expected = 506.66666666666663;
-
-        assertEquals(expected, result, EPSILON);
-    }
-
-    @Test
-    public void markusTest() {
-        SimplexProblem p = new SimplexProblem();
-        p.parse(readAllText("MarkusTest"));
-
-        double result = solver.solve(p);
-        double expected = 110;
-
-        assertEquals(expected, result, EPSILON);
-    }
-
-    @Test
-    public void minimizeTest() {
-        SimplexProblem p = new SimplexProblem();
-        p.parse(readAllText("MinimizeTest"));
-
-        double result = solver.solve(p);
-        double expected = 106.4;
 
         assertEquals(expected, result, EPSILON);
     }
