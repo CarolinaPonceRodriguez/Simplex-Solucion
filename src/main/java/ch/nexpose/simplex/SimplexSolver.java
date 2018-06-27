@@ -389,4 +389,8 @@ public class SimplexSolver {
         }
         return m;
     }
+    
+    public double getResultadoVariable(String xName) {
+    	return schema[getIndexOf(xName)][cIndex];
+    }
 }

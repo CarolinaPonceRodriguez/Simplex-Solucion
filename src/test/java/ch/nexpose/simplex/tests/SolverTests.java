@@ -27,7 +27,7 @@ public class SolverTests {
 
     public String readAllText(String filename)
     {
-    	 String p = "C:/your/repository/route/Simplex-Solucion/LP_problems/"+filename+".csv";
+    	 String p = "LP_problems/"+filename+".csv";
         Path path = Paths.get(p);
 
         String contents = "Not Data";
@@ -55,6 +55,9 @@ public class SolverTests {
         double expected = 26.0;
 
         assertEquals(expected, result, EPSILON);
+        
+        double expectedX1 = 4.857142857142857;
+        assertEquals(expectedX1, solver.getResultadoVariable("X1"), EPSILON);
     }
 
     @Test
